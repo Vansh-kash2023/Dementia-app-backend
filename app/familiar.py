@@ -1,9 +1,8 @@
 import base64
-import os
 import uuid
-from app import UPLOAD_FOLDER, app
-from flask import request, jsonify, url_for
 from app import app
+from flask import request, jsonify
+import cloudinary.uploader
 from app.models.models import FamiliarFace, db, face_schema, faces_schema
 from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
 
@@ -25,20 +24,21 @@ def add_familiar_face():
     
     if mime_type not in ['image/jpeg', 'image/png']:
         return jsonify({'message': 'Unsupported image type. Only JPEG and PNG allowed!'}), 400
-    file_ext = 'png' if 'png' in mime_type else 'jpg'
     
     try:
         image_bytes = base64.b64decode(image_data)
     except Exception as e:
         return jsonify({'message': 'Invalid base64 encoding', 'error': str(e)}), 400
-    filename = f"memory_{user_id}_{uuid.uuid4().hex}.{file_ext}"
-    file_path = os.path.join(UPLOAD_FOLDER, filename)
     try:
-        with open(file_path, 'wb') as img_file:
-            img_file.write(image_bytes)
-    except IOError as e:
-        return jsonify({'message': 'Failed to save image', 'error': str(e)}), 500
-    image_url = url_for('uploaded_file', filename=filename, _external=True)
+        upload_result = cloudinary.uploader.upload(
+            image_bytes,
+            folder=app.config['CLOUDINARY_FOLDER'],
+            public_id=f"face_{user_id}_{uuid.uuid4().hex}",
+            resource_type='image'
+        )
+        image_url = upload_result['secure_url']
+    except Exception as e:
+        return jsonify({'message': 'Failed to upload image to cloud storage', 'error': str(e)}), 500
         
     new_face = FamiliarFace(
         user_id=user_id,

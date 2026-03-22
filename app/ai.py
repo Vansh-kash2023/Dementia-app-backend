@@ -1,7 +1,7 @@
 from app.models.models import User, Memory, Reminder, FamiliarFace, Answer
 from flask import request, jsonify
 from app import app, db
-from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_request
+from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
 from google import genai
 import datetime
 
@@ -67,7 +67,7 @@ def gen_ai():
   
     }
 
-    client = genai.Client(api_key="AIzaSyCYAQMATgLJY0dcTV9wBNKarrGzxFSg_Ek")
+    client = genai.Client(api_key=app.config["GEMINI_API_KEY"])
 
     input_contents = [
         user_message,  

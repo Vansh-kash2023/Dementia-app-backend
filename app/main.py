@@ -1,9 +1,6 @@
-import os
 from flask import Flask, request, jsonify
-from app import app
+from app import app, UPLOAD_FOLDER
 from flask import send_from_directory
-
-UPLOAD_FOLDER = os.path.join(app.root_path[0:-4], 'uploads')
 
 @app.route('/static/uploads/<filename>')
 def uploaded_file(filename):
