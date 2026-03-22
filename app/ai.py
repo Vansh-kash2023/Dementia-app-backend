@@ -1,6 +1,6 @@
 from app.models.models import User, Memory, Reminder, FamiliarFace, Answer
 from flask import request, jsonify
-from app import app, db
+from app import app
 from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
 from google import genai
 import datetime
@@ -11,14 +11,16 @@ def gen_ai():
     verify_jwt_in_request()
     user_id = get_jwt_identity()
     
-    data = request.get_json()
+    data = request.get_json() or {}
     user_message = data.get("message", "")
 
     user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
     reminders = Reminder.query.filter_by(user_id=user_id).all()
     memories = Memory.query.filter_by(user_id=user_id).all()
     familiar_faces = FamiliarFace.query.filter_by(user_id=user_id).all()
-    answers = Answer.query.filter_by(user_id=user_id).all()
     current_time = datetime.datetime.now()
     context = {
         "current_time": current_time,

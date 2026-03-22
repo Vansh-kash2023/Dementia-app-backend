@@ -82,13 +82,17 @@ def get_memories():
 
 @app.route('/memories/<int:id>', methods=['GET'])
 def get_memory(id):
-    memory = Memory.query.get_or_404(id)
+    verify_jwt_in_request()
+    user_id = get_jwt_identity()
+    memory = Memory.query.filter_by(id=id, user_id=user_id).first_or_404()
     return memory_schema.jsonify(memory)
 
 @app.route('/memories/<int:id>', methods=['PUT'])
 def update_memory(id):
-    memory = Memory.query.get_or_404(id)
-    data = request.get_json()
+    verify_jwt_in_request()
+    user_id = get_jwt_identity()
+    memory = Memory.query.filter_by(id=id, user_id=user_id).first_or_404()
+    data = request.get_json() or {}
 
     memory.title = data.get('title', memory.title)
     memory.description = data.get('description', memory.description)
@@ -100,7 +104,9 @@ def update_memory(id):
 
 @app.route('/memories/<int:id>', methods=['DELETE'])
 def delete_memory(id):
-    memory = Memory.query.get_or_404(id)
+    verify_jwt_in_request()
+    user_id = get_jwt_identity()
+    memory = Memory.query.filter_by(id=id, user_id=user_id).first_or_404()
     db.session.delete(memory)
     db.session.commit()
     return jsonify({'message': 'Memory deleted successfully'})

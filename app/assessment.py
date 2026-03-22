@@ -1,10 +1,6 @@
-import base64
-import os
-import uuid
-from app import UPLOAD_FOLDER, app
-from flask import request, jsonify, url_for # type: ignore
 from app import app
-from app.models.models import Answer, answer_schema, db, answers_schema
+from flask import request, jsonify
+from app.models.models import Answer, db, answers_schema
 from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request # type: ignore
 
 @app.route('/answers', methods=['POST'])
@@ -12,7 +8,7 @@ def add_answer():
     try:
         verify_jwt_in_request()
         user_id = get_jwt_identity()
-        data = request.json
+        data = request.get_json()
 
         # Ensure data is a list
         if not isinstance(data, list):
@@ -41,5 +37,7 @@ def add_answer():
     
 @app.route('/answers', methods=['GET'])
 def get_answers():
-    all_faces = Answer.query.all()
-    return answers_schema.jsonify(all_faces)
+    verify_jwt_in_request()
+    user_id = get_jwt_identity()
+    all_answers = Answer.query.filter_by(user_id=user_id).all()
+    return answers_schema.jsonify(all_answers)

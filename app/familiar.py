@@ -59,25 +59,30 @@ def get_familiar_faces():
 
 @app.route('/faces/<int:id>', methods=['GET'])
 def get_familiar_face(id):
-    face = FamiliarFace.query.get_or_404(id)
+    verify_jwt_in_request()
+    user_id = get_jwt_identity()
+    face = FamiliarFace.query.filter_by(id=id, user_id=user_id).first_or_404()
     return face_schema.jsonify(face)
 
 @app.route('/faces/<int:id>', methods=['PUT'])
 def update_familiar_face(id):
-    face = FamiliarFace.query.get_or_404(id)
-    data = request.get_json()
+    verify_jwt_in_request()
+    user_id = get_jwt_identity()
+    face = FamiliarFace.query.filter_by(id=id, user_id=user_id).first_or_404()
+    data = request.get_json() or {}
 
     face.name = data.get('name', face.name)
     face.relationship = data.get('relationship', face.relationship)
-    face.photo_url = data.get('photo_url', face.photo_url)
-    face.voice_note_url = data.get('voice_note_url', face.voice_note_url)
+    face.image_url = data.get('image_url', face.image_url)
 
     db.session.commit()
     return face_schema.jsonify(face)
 
 @app.route('/faces/<int:id>', methods=['DELETE'])
 def delete_familiar_face(id):
-    face = FamiliarFace.query.get_or_404(id)
+    verify_jwt_in_request()
+    user_id = get_jwt_identity()
+    face = FamiliarFace.query.filter_by(id=id, user_id=user_id).first_or_404()
     db.session.delete(face)
     db.session.commit()
     return jsonify({'message': 'Familiar face deleted successfully'})

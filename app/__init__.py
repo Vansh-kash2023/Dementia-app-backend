@@ -3,6 +3,7 @@ from flask import Flask
 from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
 from flask_cors import CORS
+from flask_migrate import Migrate
 import cloudinary
 
 
@@ -68,12 +69,11 @@ cloudinary.config(
 	api_secret=app.config['CLOUDINARY_API_SECRET'],
 	secure=True
 )
-
-UPLOAD_FOLDER = _required_env('UPLOAD_FOLDER')
-if not os.path.isabs(UPLOAD_FOLDER):
-	UPLOAD_FOLDER = os.path.join(project_root, UPLOAD_FOLDER)
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 jwt = JWTManager(app)
+
+# Explicit migrations replace implicit db.create_all for safer schema changes.
+from app.models.models import db
+migrate = Migrate(app, db)
 
 from app.main import *
 from app.auth import *

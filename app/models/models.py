@@ -80,6 +80,3 @@ class AnswerSchema(ma.SQLAlchemyAutoSchema):
 
 answer_schema = AnswerSchema()
 answers_schema = AnswerSchema(many=True)
-
-with app.app_context():
-    db.create_all()

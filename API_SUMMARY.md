@@ -13,11 +13,6 @@ Auth:
 - Auth: No
 - Response: `{ "message": "Server up and running" }`
 
-### GET /static/uploads/<filename>
-- Description: Serves local uploaded files from `UPLOAD_FOLDER`.
-- Auth: No
-- Notes: Legacy endpoint; image uploads are now stored in Cloudinary.
-
 ## Authentication
 
 ### POST /signup

@@ -1,7 +1,7 @@
 from flask import request, jsonify
 from app import app
 from app.models.models import Reminder, db, reminder_schema, reminders_schema
-from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_request
+from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
 
 
 @app.route('/reminders', methods=['POST'])
@@ -32,13 +32,17 @@ def get_reminders():
 
 @app.route('/reminders/<int:id>', methods=['GET'])
 def get_reminder(id):
-    reminder = Reminder.query.get_or_404(id)
+    verify_jwt_in_request()
+    user_id = get_jwt_identity()
+    reminder = Reminder.query.filter_by(id=id, user_id=user_id).first_or_404()
     return reminder_schema.jsonify(reminder)
 
 @app.route('/reminders/<int:id>', methods=['PUT'])
 def update_reminder(id):
-    reminder = Reminder.query.get_or_404(id)
-    data = request.get_json()
+    verify_jwt_in_request()
+    user_id = get_jwt_identity()
+    reminder = Reminder.query.filter_by(id=id, user_id=user_id).first_or_404()
+    data = request.get_json() or {}
 
     reminder.title = data.get('title', reminder.title)
     reminder.description = data.get('description', reminder.description)
@@ -52,7 +56,9 @@ def update_reminder(id):
 
 @app.route('/reminders/<int:id>', methods=['DELETE'])
 def delete_reminder(id):
-    reminder = Reminder.query.get_or_404(id)
+    verify_jwt_in_request()
+    user_id = get_jwt_identity()
+    reminder = Reminder.query.filter_by(id=id, user_id=user_id).first_or_404()
     db.session.delete(reminder)
     db.session.commit()
     return jsonify({'message': 'Reminder deleted successfully'})
