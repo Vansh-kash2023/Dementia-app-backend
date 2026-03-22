@@ -1,10 +1,11 @@
 import os
-from flask import Flask
+from flask import Flask, jsonify
 from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
 from flask_cors import CORS
 from flask_migrate import Migrate
 import cloudinary
+from sqlalchemy.exc import OperationalError, SQLAlchemyError
 
 
 def _required_env(name):
@@ -70,6 +71,18 @@ cloudinary.config(
 	secure=True
 )
 jwt = JWTManager(app)
+
+
+@app.errorhandler(OperationalError)
+def handle_db_operational_error(_error):
+	app.logger.error("DB connection not successful")
+	return jsonify({"message": "DB connection failed. Server temporarily unavailable."}), 503
+
+
+@app.errorhandler(SQLAlchemyError)
+def handle_db_error(_error):
+	app.logger.error("Database operation failed")
+	return jsonify({"message": "Database operation failed."}), 500
 
 # Explicit migrations replace implicit db.create_all for safer schema changes.
 from app.models.models import db
